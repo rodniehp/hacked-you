@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>YOU'VE BEEN HACKED</title>
+    <style>
+        :root {
+            color-scheme: dark;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top, #080a10 0%, #020204 45%, #000 100%);
+            color: #a8ffb3;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(255, 0, 0, 0.15), transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(0, 255, 255, 0.1), transparent 30%);
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .screen {
+            position: relative;
+            width: min(100%, 860px);
+            margin: 0 auto;
+            padding: 32px;
+            background: rgba(10, 15, 22, 0.96);
+            border: 1px solid rgba(120, 255, 146, 0.18);
+            border-radius: 28px;
+            box-shadow: 0 35px 100px rgba(0, 0, 0, 0.45);
+            margin-top: 8vh;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #8cff95;
+            box-shadow: 0 0 14px rgba(140, 255, 149, 0.5);
+        }
+
+        .title {
+            margin: 0;
+            font-size: 1rem;
+            color: #88ff91;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .output {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(140, 255, 149, 0.12);
+            border-radius: 18px;
+            padding: 20px;
+            min-height: 240px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.99rem;
+            line-height: 1.65;
+            color: #d1ffcf;
+            white-space: pre-wrap;
+            overflow-wrap: break-word;
+        }
+
+        .footer {
+            margin-top: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, #69ffb7 0%, #11d4ff 100%);
+            border: none;
+            border-radius: 999px;
+            color: #041214;
+            padding: 16px 32px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 18px 45px rgba(16, 209, 150, 0.24);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 55px rgba(16, 209, 150, 0.32);
+        }
+
+        .note {
+            color: #8dc9a0;
+        }
+
+        .note a {
+            color: #8dc9a0;
+            text-decoration: none;
+            border-bottom: 1px solid #8dc9a0;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .note a:hover {
+            color: #a8ffb3;
+            border-bottom-color: #a8ffb3;
+        }
+
+        .screen-overlay {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 9;
+            background: rgba(255, 0, 0, 0.18);
+            backdrop-filter: blur(14px);
+            transition: opacity 0.3s ease;
+        }
+
+        .screen-overlay.show {
+            opacity: 1;
+        }
+
+        body.hacked .screen {
+            filter: blur(6px) brightness(0.82);
+        }
+
+        /* non-blocking modal used instead of alert() so TTS continues */
+        .prank-modal {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.18s ease;
+            z-index: 11;
+        }
+
+        .prank-modal.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .prank-modal-content {
+            background: rgba(10, 10, 10, 0.98);
+            color: #ffdddd;
+            padding: 22px 28px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 100, 100, 0.12);
+            max-width: 480px;
+        }
+
+        .prank-modal-content h2 {
+            margin: 0 0 8px 0;
+            font-size: 1.05rem;
+            color: #ffd9d9;
+        }
+
+        .prank-modal-content p {
+            margin: 0 0 12px 0;
+            color: #ffdddd;
+        }
+
+        .prank-modal-content button {
+            background: #ff6b6b;
+            color: #fff;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="screen">
+        <div class="top-bar">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <h1 class="title">SECURITY BREACH</h1>
+        </div>
+        <div class="output" id="output">[boot] starting breach sequence...
+        </div>
+        <div class="footer">
+            <button id="prankButton">START DOWNLOAD</button>
+            <p class="note"><a href="https://bythedevkahlil.com">by the dev kahlil</a></p>
+        </div>
+    </div>
+    <div class="screen-overlay" id="screenOverlay"></div>
+    <div class="prank-modal" id="prankModal" aria-hidden="true">
+        <div class="prank-modal-content">
+            <h2>⚠️ You have been hacked!</h2>
+            <p>Just kidding — this is a harmless joke by the dev kahlil!</p>
+            <button id="prankClose">Close</button>
+        </div>
+    </div>
+    <script>
+        const button = document.getElementById('prankButton');
+        const output = document.getElementById('output');
+        const overlay = document.getElementById('screenOverlay');
+        let ttsRetries = 0;
+        const maxTtsRetries = 3; // limit automatic resume attempts
+
+        function appendLine(text, delay = 0) {
+            return new Promise(resolve => setTimeout(() => {
+                output.textContent += text + '\n';
+                output.scrollTop = output.scrollHeight;
+                resolve();
+            }, delay));
+        }
+
+        async function runPrank() {
+            button.disabled = true;
+            button.textContent = 'DOWNLOADING...';
+            await appendLine('> establishing encrypted connection...', 450);
+            await appendLine('> bypassing firewall...', 650);
+            await appendLine('> injecting prank payload...', 850);
+            await appendLine('> deploying fake breach alert...', 650);
+            await appendLine('> WARNING: you have been hacked!', 550);
+            overlay.classList.add('show');
+            document.body.classList.add('hacked');
+            // speak a message (Text-to-Speech) and play a short beep sequence
+            const speakMessage = 'Warning. This device has been compromised. Just kidding, this is a harmless prank by the dev kahlil.';
+            function playBeepSequence() {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const now = ctx.currentTime;
+                    [0, 0.12, 0.28].forEach((offset, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(440 + i * 120, now + offset);
+                        gain.gain.setValueAtTime(0.0001, now + offset);
+                        gain.gain.linearRampToValueAtTime(0.14, now + offset + 0.01);
+                        gain.gain.linearRampToValueAtTime(0.0001, now + offset + 0.12);
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(now + offset);
+                        osc.stop(now + offset + 0.14);
+                    });
+                } catch (e) {
+                    console.warn('AudioContext failed:', e);
+                }
+            }
+
+            // Choose a higher-quality local voice when available and add small
+            // random variations to rate/pitch to sound less robotic.
+            function getPreferredVoice() {
+                if (!('speechSynthesis' in window)) return null;
+                const voices = window.speechSynthesis.getVoices() || [];
+                if (!voices.length) return null;
+                // preferred local macOS voices, fallbacks
+                const preferredNames = ['Alex', 'Samantha', 'Daniel', 'Victoria', 'Fiona', 'Karen', 'Moira', 'Tessa'];
+                // filter English voices and avoid obvious remote/google voices where possible
+                const candidates = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('en') && !/google|microsoft|azure|remote/i.test(v.name));
+                for (const name of preferredNames) {
+                    const found = candidates.find(v => v.name.toLowerCase().includes(name.toLowerCase()));
+                    if (found) return found;
+                }
+                if (candidates.length) return candidates.find(v => v.localService) || candidates[0];
+                return voices[0] || null;
+            }
+
+            function speakWithAutoResume(text) {
+                if (!('speechSynthesis' in window)) return Promise.resolve();
+                return new Promise((resolve) => {
+                    ttsRetries = 0;
+                    function doSpeak() {
+                        if (ttsRetries > maxTtsRetries) return resolve();
+                        const utter = new SpeechSynthesisUtterance(text);
+                        utter.lang = 'en-US';
+                        // voice selection
+                        let voice = getPreferredVoice();
+                        if (voice) utter.voice = voice;
+                        // add slight random variation to reduce robotic tone
+                        utter.rate = 0.95 + Math.random() * 0.12; // ~0.95 - 1.07
+                        utter.pitch = 0.95 + Math.random() * 0.18; // ~0.95 - 1.13
+                        utter.volume = 1;
+                        utter.onend = () => resolve();
+                        utter.onerror = () => {
+                            ttsRetries++;
+                            setTimeout(doSpeak, 600);
+                        };
+                        try {
+                            window.speechSynthesis.cancel();
+                            // if voices not yet loaded, try to refresh selection
+                            if (!utter.voice) {
+                                const vs = window.speechSynthesis.getVoices();
+                                if (vs && vs.length) {
+                                    const v2 = getPreferredVoice();
+                                    if (v2) utter.voice = v2;
+                                }
+                            }
+                            window.speechSynthesis.speak(utter);
+                        } catch (e) {
+                            ttsRetries++;
+                            setTimeout(doSpeak, 600);
+                        }
+                    }
+                    // ensure voices are loaded before speaking on some browsers
+                    const vs = window.speechSynthesis.getVoices();
+                    if (!vs || vs.length === 0) {
+                        window.speechSynthesis.onvoiceschanged = () => {
+                            doSpeak();
+                        };
+                        // fallback kickstart
+                        setTimeout(doSpeak, 300);
+                    } else {
+                        doSpeak();
+                    }
+                });
+            }
+
+            // modal control functions
+            function showPrankModal() {
+                const m = document.getElementById('prankModal');
+                if (!m) return;
+                m.classList.add('show');
+                m.setAttribute('aria-hidden', 'false');
+            }
+
+            function hidePrankModal() {
+                const m = document.getElementById('prankModal');
+                if (!m) return;
+                m.classList.remove('show');
+                m.setAttribute('aria-hidden', 'true');
+            }
+
+            // close button handler
+            const closeBtn = document.getElementById('prankClose');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    hidePrankModal();
+                });
+            }
+
+            playBeepSequence();
+            // show non-blocking modal immediately so it appears with the voice
+            showPrankModal();
+            // start TTS and when it finishes, hide the modal and cleanup
+            speakWithAutoResume(speakMessage).then(() => {
+                setTimeout(() => {
+                    hidePrankModal();
+                    output.textContent += '\n> prank complete. no real harm done. enjoy!\n';
+                    button.textContent = 'START DOWNLOAD';
+                    button.disabled = false;
+                    overlay.classList.remove('show');
+                    document.body.classList.remove('hacked');
+                }, 300);
+            });
+        }
+
+        button.addEventListener('click', runPrank);
+    </script>
+</body>
+
+</html>
